@@ -185,7 +185,7 @@ const SelfServiceKiosk = () => {
           <div className="cart-item-actions">
             <Button
               type="text"
-              icon={<DeleteOutlined />}
+              icon={<DeleteOutlined style={{ fontSize: '16px', color: '#FF0000' }}  />}
               onClick={() => removeFromCart(index)}
             />
           </div>
