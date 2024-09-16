@@ -133,7 +133,7 @@ const SelfServiceKiosk = () => {
 
   return (
     <div className="self-service-kiosk">
-      <h1>Self-Service Kiosk</h1>
+      <h1>Galsen Gastro Kiosk</h1>
       <Row gutter={24}>
         <Col span={18}>
           <Tabs defaultActiveKey="Salades" className="category-tabs">
