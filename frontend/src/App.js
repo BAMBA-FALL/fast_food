@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import './App.css';
+import { Button, Card, Col, Row, Modal, Tabs } from 'antd';
+import { ShoppingCartOutlined, DeleteOutlined } from '@ant-design/icons';
+// import 'antd/dist/antd.css';
+import './App.css'; // Assurez-vous de créer ce fichier CSS
 
-// Importer les images dynamiquement par catégorie
+const { TabPane } = Tabs;
+
 const importImages = (r) => {
   let images = {};
   r.keys().forEach((item) => { images[item.replace('./', '')] = r(item); });
   return images;
 };
 
-// Charger les images pour chaque catégorie
 const saladeImages = importImages(require.context('./images/Salades', false, /\.(jpg|jpeg|png|svg)$/));
 const pizzaImages = importImages(require.context('./images/Pizzas', false, /\.(jpg|jpeg|png|svg)$/));
 const burgerImages = importImages(require.context('./images/Burgers', false, /\.(jpg|jpeg|png|svg)$/));
@@ -16,10 +19,8 @@ const kebabImages = importImages(require.context('./images/Kebabs', false, /\.(j
 const boissonsImages = importImages(require.context('./images/Boissons', false, /\.(jpg|jpeg|png|svg)$/));
 const dessertImages = importImages(require.context('./images/Desserts', false, /\.(jpg|jpeg|png|svg)$/));
 
-// Liste des catégories
 const categories = ['Salades', 'Pizzas', 'Burgers', 'Kebabs', 'Boissons', 'Desserts'];
 
-// Liste des éléments de menu
 const menuItems = [
   { id: 1, name: 'Salade César', description: 'Laitue romaine, parmesan, croûtons, sauce César', price: 8, category: 'Salades', image: saladeImages['Salades1.jpg'] },
   { id: 2, name: 'Salade Niçoise', description: 'Thon, œufs durs, olives, tomates, anchois', price: 9, category: 'Salades', image: saladeImages['Salades2.jpg'] },
@@ -98,12 +99,28 @@ const menuItems = [
 
 ];
 
+
 const SelfServiceKiosk = () => {
   const [cart, setCart] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Salades');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const showItemDetails = (item) => {
+    setSelectedItem(item);
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
   const addToCart = (item) => {
     setCart([...cart, item]);
+    setIsModalVisible(false);
   };
 
   const removeFromCart = (index) => {
@@ -112,74 +129,104 @@ const SelfServiceKiosk = () => {
     setCart(newCart);
   };
 
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.price, 0).toFixed(2);
-  };
+  const totalPrice = cart.reduce((total, item) => total + item.price, 0).toFixed(2);
 
   return (
-    <div className="kiosk-layout">
-      <header className="kiosk-header">
-        <nav className="category-menu">
-          {categories.map(category => (
-            <button
-              key={category}
-              className={`category-button ${selectedCategory === category ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </nav>
-      </header>
-      <main className="kiosk-main">
-        <section className="content-area">
-          <h2 className="category-title">{selectedCategory}</h2>
-          <div className="menu-items">
-            {menuItems.filter(item => item.category === selectedCategory).map((item) => (
-              <div key={item.id} className="menu-item-card">
-                <img src={item.image} alt={item.name} className="menu-item-image" />
-                <div className="menu-item-details">
-                  <h3 className="menu-item-title">{item.name}</h3>
-                  <p className="menu-item-description">{item.description}</p>
-                  <div className="menu-item-footer">
-                    <span className="menu-item-price">{item.price} €</span>
-                    <button 
-                      className="add-to-cart-button"
-                      onClick={() => addToCart(item)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
+    <div className="self-service-kiosk">
+      <h1>Self-Service Kiosk</h1>
+      <Row gutter={24}>
+        <Col span={18}>
+          <Tabs defaultActiveKey="Salades" className="category-tabs">
+            {categories.map(category => (
+              <TabPane tab={category} key={category}>
+                <Row gutter={[16, 16]}>
+                  {menuItems
+                    .filter(item => item.category === category)
+                    .map(item => (
+                      <Col span={8} key={item.id}>
+                        <Card
+                          hoverable
+                          cover={<img alt={item.name} src={item.image} className="menu-item-image" />}
+                          actions={[
+                            <Button type="primary" onClick={() => showItemDetails(item)}>Détails</Button>,
+                            <Button onClick={() => addToCart(item)}>Ajouter au panier</Button>
+                          ]}
+                        >
+                          <Card.Meta
+                            title={item.name}
+                            description={
+                              <>
+                                <p>{item.description}</p>
+                                <p className="item-price">{item.price.toFixed(2)} €</p>
+                              </>
+                            }
+                          />
+                        </Card>
+                      </Col>
+                    ))}
+                </Row>
+              </TabPane>
             ))}
+          </Tabs>
+        </Col>
+        <Col span={6}>
+        <Card title={<><ShoppingCartOutlined /> Panier</>} className="cart-card">
+  {cart.length === 0 ? (
+    <p>Le panier est vide.</p>
+  ) : (
+    <div className="cart-items">
+      {cart.map((item, index) => (
+        <div key={index} className="cart-item">
+          <img src={item.image} alt={item.name} className="cart-item-image" width="50" />
+          <div className="cart-item-details">
+            <span>{item.name}</span>
+            <span>{item.price.toFixed(2)} €</span>
           </div>
-        </section>
-        <aside className="order-sidebar">
-          <h2 className="order-title">Votre Commande</h2>
-          {cart.map((item, index) => (
-            <div key={index} className="order-item">
-              <span>{item.name}</span>
-              <div>
-                <span className="order-item-price">{item.price} €</span>
-                <button 
-                  className="remove-item-button"
-                  onClick={() => removeFromCart(index)}
-                >
-                  🗑️
-                </button>
-              </div>
-            </div>
-          ))}
-          <div className="order-total">
-            <span>Total:</span>
-            <span>{getTotalPrice()} €</span>
+          <div className="cart-item-actions">
+            <Button
+              type="text"
+              icon={<DeleteOutlined />}
+              onClick={() => removeFromCart(index)}
+            />
           </div>
-          <button className="order-button">
-            Commander
-          </button>
-        </aside>
-      </main>
+        </div>
+      ))}
+    </div>
+  )}
+  <div className="cart-total">
+    <span>Total:</span>
+    <span>{totalPrice} €</span>
+  </div>
+  <Button type="primary" block disabled={cart.length === 0}>
+    Valider la commande
+  </Button>
+</Card>
+
+        </Col>
+      </Row>
+      
+      <Modal
+        title={selectedItem?.name}
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Fermer
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => addToCart(selectedItem)}>
+            Ajouter au panier
+          </Button>,
+        ]}
+      >
+        {selectedItem && (
+          <>
+            <img alt={selectedItem.name} src={selectedItem.image} className="modal-item-image" />
+            <p>{selectedItem.description}</p>
+            <p className="item-price">{selectedItem.price.toFixed(2)} €</p>
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
