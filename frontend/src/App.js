@@ -170,7 +170,7 @@ const SelfServiceKiosk = () => {
           </Tabs>
         </Col>
         <Col span={6}>
-        <Card title={<><ShoppingCartOutlined /> Panier</>} className="cart-card">
+        <Card title={<><ShoppingCartOutlined />Votre commande</>} className="cart-card">
   {cart.length === 0 ? (
     <p>Le panier est vide.</p>
   ) : (
